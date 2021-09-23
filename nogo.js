@@ -1,8 +1,8 @@
 const readline = require("readline");
 const https = require("https");
 
-const minify_text = async (s) => {
-    return s.replaceAll("\n", "").replaceAll("\t", "").replaceAll(" ", "");
+const minify_text = (s) => {
+    return s.replace(/\s/g, "")
 };
 
 const p_dl_one = async (s) => {
@@ -45,7 +45,7 @@ const httprequest = async (url) => {
 };
 const get = async (url) => {
     let res = await httprequest(url);
-    return await minify_text(res);
+    return minify_text(res);
 };
 
 const get_episode_url = async (url) => {
