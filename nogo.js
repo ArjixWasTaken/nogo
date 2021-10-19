@@ -1,8 +1,8 @@
-const readline = require("readline");
+const getopts = require('getopts');
 const https = require("https");
 
 const minify_text = (s) => {
-    return s.replace(/\s/g, "")
+    return s.replace(/\s/g, "");
 };
 
 const p_dl_one = async (s) => {
@@ -28,8 +28,9 @@ const httprequest = async (url) => {
         const req = https.request(url, (res) => {
             if (res.statusCode < 200 || res.statusCode >= 300) {
                 return reject(new Error("statusCode=" + res.statusCode));
-            }
+            };
             var body = [];
+            let count = 0;
             res.on("data", function (chunk) {
                 body.push(chunk);
             });
@@ -58,30 +59,29 @@ const get_episode_url = async (url) => {
 };
 
 const run = async () => {
-    let rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-    console.log("I was lazy this time so this will only give you the links and you will have to download them by hand haha.")
-    rl.question("Enter anime or episode url: ", async (url) => {
-        if (url.includes("category")) {
-            let anime_id = await p_anime_url(url);
-            let i = 0;
-            while (i++ || true) {
-                let episode_url = await get_episode_url(
-                    "https://gogoanime.pe/" + anime_id + "-episode-" + i
-                );
-                if (!episode_url) {
-                    break;
-                }
-                console.log("Episode " + i + ": " + episode_url);
+    const opts = getopts(process.argv.slice(2));
+    if (!(opts.url || opts.u)) {
+        throw new Error('Provide an anime url.');
+    };
+    const url = opts.url || opts.u;
+    const urls = new Array();
+    if (url.includes("category")) {
+        let anime_id = await p_anime_url(url);
+        let i = 0;
+        while (i++ || true) {
+            let episode_url = await get_episode_url(
+                "https://gogoanime.pe/" + anime_id + "-episode-" + i
+            );
+            if (!episode_url) {
+                break;
             }
-        } else {
-            let episode_url = await get_episode_url(url);
-            console.log(episode_url);
+            urls.push(episode_url);
         }
-        rl.close();
-    });
+    } else {
+        let episode_url = await get_episode_url(url);
+        urls.push(episode_url);
+    };
+    console.log(urls.join(','));
 };
 
 run();
